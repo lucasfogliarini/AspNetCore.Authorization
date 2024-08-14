@@ -1,31 +1,36 @@
+using AspNetCore.Authorization.JsonWebToken;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AspNetCore.Authorization.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class WeatherForecastController : ControllerBase
+    [AuthorizeApi("weather_api")]
+    public class WeatherForecastController(IAuthService authorizationService, ILogger<WeatherForecastController> logger) : ControllerBase
     {
-        private static readonly string[] Summaries = new[]
-        {
-            "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-        };
+        private readonly IAuthService authorizationService = authorizationService;
+        private readonly ILogger<WeatherForecastController> _logger = logger;
 
-        private readonly ILogger<WeatherForecastController> _logger;
-
-        public WeatherForecastController(ILogger<WeatherForecastController> logger)
-        {
-            _logger = logger;
-        }
-
-        [HttpGet(Name = "GetWeatherForecast")]
-        public IEnumerable<WeatherForecast> Get()
+        [HttpGet, AuthorizeResource(nameof(Get5WeatherForecasts))]
+        [Route("5")]
+        public IEnumerable<WeatherForecast> Get5WeatherForecasts()
         {
             return Enumerable.Range(1, 5).Select(index => new WeatherForecast
             {
                 Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                TemperatureC = Random.Shared.Next(-20, 55),
-                Summary = Summaries[Random.Shared.Next(Summaries.Length)]
+                TemperatureC = Random.Shared.Next(-20, 55)
+            })
+            .ToArray();
+        }
+
+        [HttpGet, AuthorizeResource(nameof(Get10WeatherForecasts))]
+        [Route("10")]
+        public IEnumerable<WeatherForecast> Get10WeatherForecasts()
+        {
+            return Enumerable.Range(1, 10).Select(index => new WeatherForecast
+            {
+                Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
+                TemperatureC = Random.Shared.Next(-20, 55)
             })
             .ToArray();
         }
